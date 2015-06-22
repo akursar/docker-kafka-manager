@@ -1,24 +1,22 @@
 FROM phusion/baseimage:0.9.16
 
-RUN apt-get update && apt-get install -y \
-  fakeroot \
-  git \
-  openjdk-7-jdk
-
-ENV \
-  KM_REVISION=a4495bf94b439b822039a2a6daa3194ee6fcbd7c \
-  KM_VERSION=1.2.3
-
-RUN cd / && \
-  git clone https://github.com/yahoo/kafka-manager && \
-  cd kafka-manager && \
-  git checkout ${KM_REVISION} && \
-  ./sbt clean clean debian:packageBin && \
-  dpkg -i ./target/kafka-manager_${KM_VERSION}_all.deb && \
-  rm -fr /kafka-manager
+CMD ["/usr/bin/kafka-manager"]
 
 EXPOSE 9000
 
-CMD ["/usr/bin/kafka-manager"]
+ENV \
+  KM_REVISION=97bad8ddbebcbca3a3c7aac891d2b231d6609ba1 \
+  KM_VERSION=1.2.4
 
-RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+RUN \
+  apt-get update && \
+  apt-get install -y fakeroot git openjdk-7-jdk && \
+  git clone https://github.com/yahoo/kafka-manager /tmp/kafka-manager && \
+  cd /tmp/kafka-manager && \
+  git checkout ${KM_REVISION} && \
+  ./sbt clean debian:packageBin && \
+  dpkg -i ./target/kafka-manager_${KM_VERSION}_all.deb && \
+  apt-get purge -y fakeroot git && \
+  apt-get autoremove -y && \
+  apt-get clean && \
+  rm -rf /root/.sbt /root/.ivy2 /tmp/* /var/lib/apt/lists/* /var/tmp/*
